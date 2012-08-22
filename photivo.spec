@@ -5,18 +5,15 @@
 # cd - && tar cf %{name}-`date +%Y%m%d`
 # bzip2 %{name}-`date +%Y%m%d`.tar
 
-%define grma_version 1.3.16
-
 Name:		photivo
 Version:	20120818
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	RAW photo processor
 
 Group:		Applications/Multimedia 
 License:	GPLv3+
 URL:		http://www.photivo.org/
 Source0:	%{name}-%{version}.tar.bz2
-Source1:    http://downloads.sourceforge.net/sourceforge/graphicsmagick/GraphicsMagick-%{grma_version}.tar.bz2
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -24,7 +21,10 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: ccache libtool convmv mercurial
 BuildRequires: qt-devel exiv2-devel lensfun-devel fftw-devel gimp-devel lcms2-devel bzip2-devel liblqr-1-devel
 BuildRequires: libjpeg-devel libtiff-devel libpng-devel libwmf-devel
-BuildRequires: desktop-file-utils libjasper-devel libxml2-devel 
+BuildRequires: desktop-file-utils libjasper-devel libxml2-devel GraphicsMagick-devel
+
+# beginning with this version GM links with lcms2
+Requires: GraphicsMagick >= 1.3.16-5
 
 %description
 Photivo is a free and open source photo processor. 
@@ -47,42 +47,7 @@ sed -i "s|.*shortcut2.*||g" photivo.pro
 sed -i "s|QMAKE_POST_LINK=strip \$(TARGET)||g" photivoProject/photivoProject.pro
 chmod 0644 Sources/{*.h,*.cpp,*/*.c,*/*.h}
 
-tar xjf %{SOURCE1}
-ln -s GraphicsMagick-%{grma_version} GraphicsMagick
-
 %build
-
-# photivo currently statically links a local copy of GraphicsMagick.
-# This is because photivo needs GraphicsMagick compiled with lcms2,
-# while the common GraphicsMagick is linked with lcms1.
-# An upcoming version of GraphicsMagick will always use lcms2, then
-# photivo will switch to the common GraphicsMagick.
-#
-# see http://code.google.com/p/photivo/issues/detail?id=58
-
-# configure and build our own GraphicsMagick
-cd GraphicsMagick
-%configure --enable-static \
-           --with-quantum-depth=16 \
-           --without-lcms \
-           --with-lcms2 \
-           --with-magick_plus_plus \
-           --with-modules \
-           --with-threads \
-           --with-x \
-           --with-xml \
-           --without-dps \
-           --without-gslib \
-           --with-windows-font-dir=%{_datadir}/fonts/msttcorefonts \
-           --with-gs-font-dir=%{_datadir}/fonts/default/ghostscript
-make %{?_smp_mflags}
-mkdir install
-make DESTDIR=`pwd`/install install
-if [ -e install/usr/lib64 ]; then
-        mv install/usr/lib64 install/usr/lib
-fi
-
-cd ..
 
 # configure photivo
 export PKG_CONFIG_PATH=`pwd`/GraphicsMagick/install/usr/lib/pkgconfig/:$PKG_CONFIG_PATH
@@ -98,12 +63,8 @@ cd photivoProject && qmake-qt4 -o Makefile photivoProject.pro && cd ..
 cd ptGimpProject && qmake-qt4 -o Makefile ptGimpProject.pro && cd ..
 cd ptCreateAdobeProfilesProject && qmake-qt4 -o Makefile ptCreateAdobeProfilesProject.pro && cd ..
 
-# replace references to GraphicsMagick headers and libraries with our local version
-sed -i 's/-I\/usr\/include\/GraphicsMagick/-I..\/GraphicsMagick\/install\/usr\/include\/GraphicsMagick/g' */Makefile
-sed -i 's/-lGraphicsMagick++ -lGraphicsMagickWand -lGraphicsMagick/..\/GraphicsMagick\/install\/usr\/lib\/libGraphicsMagick++.a ..\/GraphicsMagick\/install\/usr\/lib\/libGraphicsMagickWand.a ..\/GraphicsMagick\/install\/usr\/lib\/libGraphicsMagick.a -lpng -lxml2 -ltiff -lwmf -lwmflite -ljasper -lz -lfreetype -lX11 -lXext -lbz2/g' */Makefile
-
 # build photivo
-make	%{?_smp_mflags}    
+make %{?_smp_mflags}    
 
 %install
 rm -rf %{buildroot}
@@ -144,6 +105,10 @@ install -m 755 -p mm\ extern\ photivo.py %{buildroot}%{_libdir}/gimp/2.0/plug-in
 %{_libdir}/gimp/2.0/plug-ins/ptGimp
 
 %changelog
+* Thu Aug 23 2012 Gerd v. Egidy <gerd@egidy.de> - 20120818-2
+- GraphicsMagick now links against lcms2 (#849778)
+- Remove our local copy of GraphicsMagick and link against the system one
+
 * Sat Aug 18 2012 Thibault North <tnorth@fedoraproject.org> - 20120818-1
 - Small fixes
 
