@@ -7,21 +7,23 @@
 
 Name:		photivo
 Version:	20120818
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	RAW photo processor
 
 Group:		Applications/Multimedia 
 License:	GPLv3+
 URL:		http://www.photivo.org/
 Source0:	%{name}-%{version}.tar.bz2
+Patch1:     photivo-system-cimg.patch
+Patch2:     photivo-cimg-150.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 
-BuildRequires: ccache libtool convmv mercurial
+BuildRequires: ccache libtool convmv
 BuildRequires: qt-devel exiv2-devel lensfun-devel fftw-devel gimp-devel lcms2-devel bzip2-devel liblqr-1-devel
 BuildRequires: libjpeg-devel libtiff-devel libpng-devel libwmf-devel
-BuildRequires: desktop-file-utils libjasper-devel libxml2-devel GraphicsMagick-devel
+BuildRequires: desktop-file-utils libjasper-devel libxml2-devel GraphicsMagick-devel CImg
 
 # beginning with this version GM links with lcms2
 Requires: GraphicsMagick >= 1.3.16-5
@@ -42,29 +44,32 @@ Photivo is a free and open source photo processor.
 
 %prep
 %setup -q
+%patch1 -p1
+%patch2 -p1
 
 sed -i "s|.*shortcut2.*||g" photivo.pro
 sed -i "s|QMAKE_POST_LINK=strip \$(TARGET)||g" photivoProject/photivoProject.pro
 chmod 0644 Sources/{*.h,*.cpp,*/*.c,*/*.h}
+
+# set our version, don't rely on hg
+sed -i "s|APPVERSION = .*|APPVERSION = %{version}-%{release}|g" photivoProject/photivoProject.pro
+
+# we don't use the local copy of CImg, delete it to make sure it doesn't accidentally slip back in
+rm -f Sources/greyc/CImg.h
 
 %build
 
 # configure photivo
 export PKG_CONFIG_PATH=`pwd`/GraphicsMagick/install/usr/lib/pkgconfig/:$PKG_CONFIG_PATH
 qmake-qt4 PREFIX=%{_prefix}	QMAKE_CFLAGS="%{optflags}"\
-				QMAKE_CXXFLAGS="%{optflags}" \
-				QMAKE_LFLAGS="%{optflags}" QMAKE_STRIP=":" 
+                QMAKE_CXXFLAGS="%{optflags}" \
+                QMAKE_LFLAGS="%{optflags}" QMAKE_STRIP=":" \
+                "CONFIG+=WithSystemCImg"
 # adobe profiles and curve creation does not work currently
 #                "CONFIG+=WithAdobeProfiles WithCurves"
 
-cd ptClearProject && qmake-qt4 -o Makefile ptClearProject.pro && cd ..
-cd ptCreateCurvesProject && qmake-qt4 -o Makefile ptCreateCurvesProject.pro && cd ..
-cd photivoProject && qmake-qt4 -o Makefile photivoProject.pro && cd ..
-cd ptGimpProject && qmake-qt4 -o Makefile ptGimpProject.pro && cd ..
-cd ptCreateAdobeProfilesProject && qmake-qt4 -o Makefile ptCreateAdobeProfilesProject.pro && cd ..
-
 # build photivo
-make %{?_smp_mflags}    
+make	%{?_smp_mflags}    
 
 %install
 rm -rf %{buildroot}
@@ -105,6 +110,12 @@ install -m 755 -p mm\ extern\ photivo.py %{buildroot}%{_libdir}/gimp/2.0/plug-in
 %{_libdir}/gimp/2.0/plug-ins/ptGimp
 
 %changelog
+* Mon Aug 27 2012 Gerd v. Egidy <gerd@egidy.de> - 20120818-3
+- Improve configuring with qmake
+- Insert rpm version into the program, don't rely on hg for this anymore
+- add patch to use a system supplied CImg instead of the local copy
+- add patch to compile with CImg version 1.5.0
+
 * Thu Aug 23 2012 Gerd v. Egidy <gerd@egidy.de> - 20120818-2
 - GraphicsMagick now links against lcms2 (#849778)
 - Remove our local copy of GraphicsMagick and link against the system one
