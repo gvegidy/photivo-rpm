@@ -1,11 +1,13 @@
-Name:           CImg
+%define lib_name CImg
+
+Name:           %{lib_name}-devel
 Version:        1.5.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        C++ Template Image Processing Toolkit
 
-License:        CeCILL v2.0
+License:        CeCILL
 URL:            http://cimg.sourceforge.net/
-Source0:        http://downloads.sourceforge.net/cimg/%{name}-%{version}.zip
+Source0:        http://downloads.sourceforge.net/cimg/%{lib_name}-%{version}.zip
 Patch1:         CImg-1.5.0-pkgconfig.patch
 
 BuildArch:      noarch
@@ -21,10 +23,17 @@ display/transform/filter images, draw primitives (text, faces, curves,
 and so on...
 
 %prep
-%setup -q
+%setup -q -n %{lib_name}-%{version}
 %patch1 -p1
 
 %build
+
+# Convert licence files to utf-8
+for file in Licence_CeCILL-C_V1-en.txt Licence_CeCILL_V2-en.txt; do
+    iconv -f ISO-8859-1 -t UTF-8 -o $file.new $file && \
+    touch -r $file $file.new && \
+    mv $file.new $file
+done
 
 # make documentation
 cd html
@@ -62,6 +71,9 @@ install -p -m 644 html/latex/refman.pdf %{buildroot}/%{_docdir}/%{name}-%{versio
 %{_datadir}/pkgconfig/CImg.pc
 
 %changelog
+* Tue Aug 28 2012 Thibault North <tnorth@fedoraproject.org> - 1.5.0-3
+- minor fixes
+
 * Sun Aug 26 2012 Gerd v. Egidy <gerd@egidy.de> - 1.5.0-2
 - put plugins in separate subdir
 - add pkgconfig file (as patch for now, will be submitted upstream)
