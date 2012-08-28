@@ -8,6 +8,8 @@ Summary:        C++ Template Image Processing Toolkit
 License:        CeCILL
 URL:            http://cimg.sourceforge.net/
 Source0:        http://downloads.sourceforge.net/cimg/%{lib_name}-%{version}.zip
+
+# this patch was accepted upstream and will be included in 1.5.1
 Patch1:         CImg-1.5.0-pkgconfig.patch
 
 BuildArch:      noarch
