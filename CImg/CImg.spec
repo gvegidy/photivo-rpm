@@ -1,13 +1,11 @@
-%define lib_name CImg
-
-Name:           %{lib_name}-devel
+Name:           CImg
 Version:        1.5.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        C++ Template Image Processing Toolkit
 
 License:        CeCILL
 URL:            http://cimg.sourceforge.net/
-Source0:        http://downloads.sourceforge.net/cimg/%{lib_name}-%{version}.zip
+Source0:        http://downloads.sourceforge.net/cimg/%{name}-%{version}.zip
 
 # this patch was accepted upstream and will be included in 1.5.1
 Patch1:         CImg-1.5.0-pkgconfig.patch
@@ -16,6 +14,17 @@ BuildArch:      noarch
 BuildRequires:  texlive-latex, doxygen
 
 %description
+%{summary}
+
+%package devel
+Summary: C++ Template Image Processing Toolkit
+Group:   Development/Libraries
+# -devel subpkg only atm, compat with other distros
+Provides: %{name} = %{version}-%{release}
+# not *strictly* a -static pkg, but the results are the same
+Provides: %{name}-static = %{version}-%{release}
+
+%description devel
 The CImg Library is a small, open source, C++ toolkit for image processing.
 
 CImg defines classes and methods to manage images in your own C++ code. 
@@ -25,7 +34,7 @@ display/transform/filter images, draw primitives (text, faces, curves,
 and so on...
 
 %prep
-%setup -q -n %{lib_name}-%{version}
+%setup -q
 %patch1 -p1
 
 %build
@@ -60,11 +69,11 @@ install -d %{buildroot}/%{_datadir}/pkgconfig
 install -p -m 644 resources/CImg.pc %{buildroot}/%{_datadir}/pkgconfig
 
 # install documentation
-install -d %{buildroot}/%{_docdir}/%{name}-%{version}/html
-install -p -m 644 html/reference/* %{buildroot}/%{_docdir}/%{name}-%{version}/html
-install -p -m 644 html/latex/refman.pdf %{buildroot}/%{_docdir}/%{name}-%{version}/CImg_reference.pdf
+install -d %{buildroot}/%{_docdir}/%{name}-devel-%{version}/html
+install -p -m 644 html/reference/* %{buildroot}/%{_docdir}/%{name}-devel-%{version}/html
+install -p -m 644 html/latex/refman.pdf %{buildroot}/%{_docdir}/%{name}-devel-%{version}/CImg_reference.pdf
 
-%files
+%files devel
 %defattr(-,root,root,-)
 %doc README.txt Licence_CeCILL_V2-en.txt Licence_CeCILL-C_V1-en.txt
 # the html and pdf documentation is installed automatically
@@ -73,6 +82,11 @@ install -p -m 644 html/latex/refman.pdf %{buildroot}/%{_docdir}/%{name}-%{versio
 %{_datadir}/pkgconfig/CImg.pc
 
 %changelog
+* Wed Aug 29 2012 Gerd v. Egidy <gerd@egidy.de> - 1.5.0-4
+- rename to CImg.spec again and create -devel subpackage
+  spec snippets for this taken from eigen2.spec
+- some cleanups
+
 * Tue Aug 28 2012 Thibault North <tnorth@fedoraproject.org> - 1.5.0-3
 - minor fixes
 
