@@ -1,28 +1,31 @@
 Name:           CImg
-Version:        1.5.0
-Release:        4%{?dist}
+Version:        1.5.1
+Release:        1%{?dist}
 Summary:        C++ Template Image Processing Toolkit
 
 License:        CeCILL
 URL:            http://cimg.sourceforge.net/
 Source0:        http://downloads.sourceforge.net/cimg/%{name}-%{version}.zip
 
-# this patch was accepted upstream and will be included in 1.5.1
-Patch1:         CImg-1.5.0-pkgconfig.patch
+# this patch is in upstream CVS, but not in the distributed sources
+Patch1:         CImg-1.5.1-pkgconfig.patch
 
 BuildArch:      noarch
-BuildRequires:  texlive-latex, doxygen
+BuildRequires:  texlive-latex, doxygen, libstdc++-devel
 
 %description
 %{summary}
 
 %package devel
-Summary: C++ Template Image Processing Toolkit
-Group:   Development/Libraries
+Summary:        C++ Template Image Processing Toolkit
+Group:          Development/Libraries
+
 # -devel subpkg only atm, compat with other distros
-Provides: %{name} = %{version}-%{release}
+Provides:       %{name} = %{version}-%{release}
 # not *strictly* a -static pkg, but the results are the same
-Provides: %{name}-static = %{version}-%{release}
+Provides:       %{name}-static = %{version}-%{release}
+
+Requires:       libstdc++-devel
 
 %description devel
 The CImg Library is a small, open source, C++ toolkit for image processing.
@@ -55,6 +58,12 @@ cd latex
 make
 cd ../..
 
+%check
+cd examples
+# just a quick build test without other libraries
+# as there is no configure provided and paths like /usr/lib are hardcoded in the makefile
+make mlinux %{?_smp_mflags}
+
 %install
 rm -rf $RPM_BUILD_ROOT
 
@@ -77,11 +86,20 @@ install -p -m 644 html/latex/refman.pdf %{buildroot}/%{_docdir}/%{name}-devel-%{
 %defattr(-,root,root,-)
 %doc README.txt Licence_CeCILL_V2-en.txt Licence_CeCILL-C_V1-en.txt
 # the html and pdf documentation is installed automatically
+%dir %{_includedir}/CImg
 %{_includedir}/CImg/CImg.h
 %{_includedir}/CImg/plugins/
 %{_datadir}/pkgconfig/CImg.pc
 
 %changelog
+* Thu Aug 30 2012 Gerd v. Egidy <gerd@egidy.de> - 1.5.1-1
+- update to current upstream
+- fix directory ownership
+- update the pkgconfig patch, fix comment
+- add check section, compile examples there
+- require libstc++-devel: always needed to compile
+  the other libraries than can be included are optional
+
 * Wed Aug 29 2012 Gerd v. Egidy <gerd@egidy.de> - 1.5.0-4
 - rename to CImg.spec again and create -devel subpackage
   spec snippets for this taken from eigen2.spec

@@ -1,0 +1,12 @@
+diff -u -r -N CImg-1.5.0.orig/resources/CImg.pc CImg-1.5.0/resources/CImg.pc
+--- CImg-1.5.0.orig/resources/CImg.pc	1970-01-01 01:00:00.000000000 +0100
++++ CImg-1.5.0/resources/CImg.pc	2012-08-26 22:38:01.983694110 +0200
+@@ -0,0 +1,8 @@
++prefix=/usr
++exec_prefix=/usr
++includedir=/usr/include/CImg
++ 
++Name: CImg
++Description: C++ Template Image Processing Toolkit
++Version: 1.5.1
++Cflags: -I${includedir}
