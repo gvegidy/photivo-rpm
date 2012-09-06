@@ -6,16 +6,14 @@
 # bzip2 %{name}-`date +%Y%m%d`.tar
 
 Name:		photivo
-Version:	20120818
-Release:	3%{?dist}
+Version:	20120906
+Release:	1%{?dist}
 Summary:	RAW photo processor
 
 Group:		Applications/Multimedia 
 License:	GPLv3+
 URL:		http://www.photivo.org/
 Source0:	%{name}-%{version}.tar.bz2
-Patch1:     photivo-system-cimg.patch
-Patch2:     photivo-cimg-150.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -23,10 +21,12 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: ccache libtool convmv
 BuildRequires: qt-devel exiv2-devel lensfun-devel fftw-devel gimp-devel lcms2-devel bzip2-devel liblqr-1-devel
 BuildRequires: libjpeg-devel libtiff-devel libpng-devel libwmf-devel
-BuildRequires: desktop-file-utils libjasper-devel libxml2-devel GraphicsMagick-devel CImg
+BuildRequires: desktop-file-utils libjasper-devel libxml2-devel CImg-devel
 
 # beginning with this version GM links with lcms2
 Requires: GraphicsMagick >= 1.3.16-5
+BuildRequires: GraphicsMagick-devel >= 1.3.16-5
+BuildRequires: GraphicsMagick-c++-devel >= 1.3.16-5
 
 %description
 Photivo is a free and open source photo processor. 
@@ -37,6 +37,7 @@ It handles your RAW files as well as your bitmap files in a non-destructive
 Summary:    GIMP integration for Photivo
 Group:      Applications/Multimedia
 Requires:   %{name} = %{version}
+Requires:   gimp
 
 %description -n photivo-gimp
 GIMP integration for Photivo.
@@ -44,8 +45,6 @@ Photivo is a free and open source photo processor.
 
 %prep
 %setup -q
-%patch1 -p1
-%patch2 -p1
 
 sed -i "s|.*shortcut2.*||g" photivo.pro
 sed -i "s|QMAKE_POST_LINK=strip \$(TARGET)||g" photivoProject/photivoProject.pro
@@ -110,6 +109,13 @@ install -m 755 -p mm\ extern\ photivo.py %{buildroot}%{_libdir}/gimp/2.0/plug-in
 %{_libdir}/gimp/2.0/plug-ins/ptGimp
 
 %changelog
+* Thu Sep 06 2012 Gerd v. Egidy <gerd@egidy.de> - 20120906-1
+- update to current upstream
+- patch to use system supplied CImg has been applied upstream
+- patch for CImg 1.5.0+ support has been applied upstream
+- the gimp plugin obviously requires gimp
+- fix build dependencies
+
 * Mon Aug 27 2012 Gerd v. Egidy <gerd@egidy.de> - 20120818-3
 - Improve configuring with qmake
 - Insert rpm version into the program, don't rely on hg for this anymore
